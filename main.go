@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -22,8 +23,19 @@ func getServer(conf *config.Config) *http.Server {
 }
 
 func main() {
-	conf := config.Load()
-	db.Connect(conf)
+	conf, err := config.Load()
+	if err != nil {
+		log.Fatal("Unable to load config", err)
+	}
+
+	_, err = db.Connect(conf)
+	if err != nil {
+		log.Fatal("db connection failed", err)
+	}
+
+	if err := db.MigrationsUp(conf); err != nil {
+		log.Fatal("Unable to run Migrations")
+	}
 	server := getServer(conf)
 	server.ListenAndServe()
 }

@@ -1,8 +1,6 @@
 package config
 
 import (
-	"log"
-
 	"github.com/spf13/viper"
 )
 
@@ -12,15 +10,15 @@ type Config struct {
 	HOST         string `mapstructure:"HOST"`
 }
 
-func Load() *Config {
+func Load() (*Config, error) {
 	conf := &Config{}
 	viper.SetConfigFile(".env")
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {
-		log.Fatalf("Error while reading config file %s", err)
+		return nil, err
 	}
 	if err := viper.Unmarshal(conf); err != nil {
-		log.Fatalf("Error while loading config to struct: %s", err)
+		return nil, err
 	}
-	return conf
+	return conf, nil
 }
