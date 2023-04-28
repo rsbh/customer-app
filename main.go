@@ -6,17 +6,15 @@ import (
 
 	"github.com/gin-gonic/gin"
 	api "github.com/rsbh/customer-app/api"
+	"github.com/rsbh/customer-app/config"
+	"github.com/rsbh/customer-app/db"
 )
 
-const HOST = "localhost"
-const PORT = "8000"
-
-func getServer() *http.Server {
+func getServer(conf *config.Config) *http.Server {
 	router := gin.Default()
-
 	api.BindRoutes(router, "/api")
 
-	addr := fmt.Sprintf("%s:%s", HOST, PORT)
+	addr := fmt.Sprintf("%s:%s", conf.HOST, conf.PORT)
 	return &http.Server{
 		Addr:    addr,
 		Handler: router,
@@ -24,6 +22,8 @@ func getServer() *http.Server {
 }
 
 func main() {
-	server := getServer()
+	conf := config.Load()
+	db.Connect(conf)
+	server := getServer(conf)
 	server.ListenAndServe()
 }
