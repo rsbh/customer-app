@@ -2,22 +2,22 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/jmoiron/sqlx"
 	"github.com/rsbh/customer-app/api/customers"
+	"github.com/rsbh/customer-app/db/repositories"
 )
 
 type ApiHandler struct {
-	DB *sqlx.DB
+	customerRepo *repositories.CustomerRepo
 }
 
-func NewApiHandler(DB *sqlx.DB) *ApiHandler {
+func NewApiHandler(customerRepo *repositories.CustomerRepo) *ApiHandler {
 	return &ApiHandler{
-		DB: DB,
+		customerRepo: customerRepo,
 	}
 }
 
 func (h *ApiHandler) BindRoutes(rg *gin.Engine, baseURL string) {
 	router := rg.Group(baseURL)
-	customerHandler := customers.NewCustomerHandler(h.DB)
+	customerHandler := customers.NewCustomerHandler(h.customerRepo)
 	customerHandler.BindRoutes(router, "/customers")
 }

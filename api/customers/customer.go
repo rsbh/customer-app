@@ -4,36 +4,34 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/doug-martin/goqu/v9"
 	"github.com/gin-gonic/gin"
-	"github.com/jmoiron/sqlx"
+	"github.com/rsbh/customer-app/db/repositories"
 	"github.com/rsbh/customer-app/db/schema"
 )
 
 type CustomerHandler struct {
-	DB *sqlx.DB
+	customerRepo *repositories.CustomerRepo
 }
 
-func NewCustomerHandler(DB *sqlx.DB) *CustomerHandler {
+func NewCustomerHandler(customerRepo *repositories.CustomerRepo) *CustomerHandler {
 	return &CustomerHandler{
-		DB: DB,
+		customerRepo: customerRepo,
 	}
+}
+
+type ListCustomerResponse struct {
+	Customers []schema.Customer `json:"customers"`
 }
 
 func (h *CustomerHandler) listCustomersHandler(c *gin.Context) {
-	customers := []schema.Customer{}
-	query, _, err := goqu.Select("*").From("customers").ToSQL()
+	customers, err := h.customerRepo.ListCustomers(c)
 	if err != nil {
-		log.Printf(`error in query generation: %s`, err)
-		c.JSON(http.StatusInternalServerError, "Something went wrong")
-		return
-	}
-	if err = h.DB.SelectContext(c, &customers, query); err != nil {
 		log.Printf(`error in querying db: %s`, err)
 		c.JSON(http.StatusInternalServerError, "Something went wrong")
 		return
 	}
-	c.JSON(http.StatusOK, customers)
+	resp := ListCustomerResponse{Customers: customers}
+	c.JSON(http.StatusOK, resp)
 }
 
 func (h *CustomerHandler) getCustomerHandler(c *gin.Context) {

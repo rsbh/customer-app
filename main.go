@@ -10,11 +10,13 @@ import (
 	api "github.com/rsbh/customer-app/api"
 	"github.com/rsbh/customer-app/config"
 	"github.com/rsbh/customer-app/db"
+	"github.com/rsbh/customer-app/db/repositories"
 )
 
 func getServer(conf *config.Config, db *sqlx.DB) *http.Server {
 	router := gin.Default()
-	apiHandler := api.NewApiHandler(db)
+	customerRepo := repositories.NewCustomerRepo(db)
+	apiHandler := api.NewApiHandler(customerRepo)
 	apiHandler.BindRoutes(router, "/api")
 
 	addr := fmt.Sprintf("%s:%s", conf.HOST, conf.PORT)
