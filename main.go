@@ -17,7 +17,7 @@ func getServer(conf *config.Config, db *sqlx.DB) *http.Server {
 	router := gin.Default()
 	customerRepo := repositories.NewCustomerRepo(db)
 	apiHandler := api.NewApiHandler(customerRepo)
-	apiHandler.BindRoutes(router, "/api")
+	apiHandler.BindRoutes(router.Group("/api"))
 
 	addr := fmt.Sprintf("%s:%s", conf.HOST, conf.PORT)
 	return &http.Server{

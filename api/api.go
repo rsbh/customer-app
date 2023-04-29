@@ -2,7 +2,6 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/rsbh/customer-app/api/customers"
 	"github.com/rsbh/customer-app/db/repositories"
 )
 
@@ -16,8 +15,12 @@ func NewApiHandler(customerRepo *repositories.CustomerRepo) *ApiHandler {
 	}
 }
 
-func (h *ApiHandler) BindRoutes(rg *gin.Engine, baseURL string) {
-	router := rg.Group(baseURL)
-	customerHandler := customers.NewCustomerHandler(h.customerRepo)
-	customerHandler.BindRoutes(router, "/customers")
+func (h *ApiHandler) BindRoutes(rg *gin.RouterGroup) {
+	customerRoutes := rg.Group("/customers")
+	{
+		customerRoutes.GET("/", h.listCustomersHandler)
+		customerRoutes.POST("/", h.createCustomerHandler)
+		customerRoutes.GET("/:id", h.getCustomerHandler)
+		customerRoutes.PUT("/:id", h.updateCustomerHandler)
+	}
 }
