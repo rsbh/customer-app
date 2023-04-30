@@ -41,7 +41,7 @@ func (h *ApiHandler) getCustomerHandler(c *gin.Context) {
 	customer, err := h.customerRepo.GetCustomer(c, id)
 
 	if err != nil && err != sql.ErrNoRows {
-		log.Printf(`error in db insert: %s`, err)
+		log.Printf(`error in db query: %s`, err)
 		c.JSON(http.StatusInternalServerError, "Something went wrong")
 		return
 	}
@@ -90,5 +90,40 @@ func (h *ApiHandler) createCustomerHandler(c *gin.Context) {
 }
 
 func (h *ApiHandler) updateCustomerHandler(c *gin.Context) {
-	c.JSON(http.StatusOK, "update customers")
+	var requestBody createCustomerRequestBody
+
+	err := c.BindJSON(&requestBody)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, "Bad Request")
+		return
+	}
+
+	id, err := strconv.Atoi(c.Param("id"))
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, "Bad Request")
+		return
+	}
+
+	customer, err := h.customerRepo.UpdateCustomers(c, id, repositories.CreateCustomersBody{
+		FirstName: requestBody.FirstName,
+		LastName:  requestBody.LastName,
+		Email:     requestBody.Email,
+	})
+
+	if err != nil && err != sql.ErrNoRows {
+		log.Printf(`error in db query: %s`, err)
+		c.JSON(http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+	if err == sql.ErrNoRows {
+		c.JSON(http.StatusNotFound, "Not Found")
+		return
+	}
+
+	c.JSON(http.StatusOK, struct {
+		Customer schema.Customer `json:"customers"`
+	}{
+		Customer: customer,
+	})
 }
