@@ -53,7 +53,7 @@ func main() {
 func runServe(conf *config.Config) {
 	DB, err := db.Connect(conf)
 	if err != nil {
-		log.Fatal("db connection failed", err)
+		log.Fatalf(`db connection failed: %s`, err)
 	}
 	server := getServer(conf, DB)
 	server.ListenAndServe()
