@@ -1,8 +1,10 @@
 package api
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rsbh/customer-app/db/repositories"
@@ -24,8 +26,32 @@ func (h *ApiHandler) listCustomersHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+type getCustomerResponse struct {
+	Customer schema.Customer `json:"customer"`
+}
+
 func (h *ApiHandler) getCustomerHandler(c *gin.Context) {
-	c.JSON(http.StatusOK, "get customers")
+	id, err := strconv.Atoi(c.Param("id"))
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, "Bad Request")
+		return
+	}
+
+	customer, err := h.customerRepo.GetCustomer(c, id)
+
+	if err != nil && err != sql.ErrNoRows {
+		log.Printf(`error in db insert: %s`, err)
+		c.JSON(http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+	if err == sql.ErrNoRows {
+		c.JSON(http.StatusNotFound, "Not Found")
+		return
+	}
+	c.JSON(http.StatusOK, getCustomerResponse{
+		Customer: customer,
+	})
 }
 
 type createCustomerRequestBody struct {

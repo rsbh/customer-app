@@ -48,3 +48,18 @@ func (repo *CustomerRepo) CreateCustomers(ctx context.Context, body CreateCustom
 	}
 	return customer, nil
 }
+
+func (repo *CustomerRepo) GetCustomer(ctx context.Context, id int) (schema.Customer, error) {
+	customer := schema.Customer{}
+	query, _, err := goqu.Select("*").From("customers").Where(goqu.Ex{
+		"id": id,
+	}).ToSQL()
+	if err != nil {
+		return schema.Customer{}, err
+	}
+	err = repo.DB.GetContext(ctx, &customer, query)
+	if err != nil {
+		return schema.Customer{}, err
+	}
+	return customer, nil
+}
