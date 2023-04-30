@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
@@ -27,19 +28,40 @@ func getServer(conf *config.Config, db *sqlx.DB) *http.Server {
 }
 
 func main() {
+	if len(os.Args) != 2 {
+		log.Fatal("no argument, usage: customer-app <serve | migarate>")
+		return
+	}
+
+	runCmd := os.Args[1]
+
 	conf, err := config.Load()
 	if err != nil {
 		log.Fatal("Unable to load config", err)
 	}
 
+	switch runCmd {
+	case "serve":
+		runServe(conf)
+	case "migrate":
+		runMigration(conf)
+	default:
+		fmt.Println("invalid argument, usage: customer-app <serve | migarate>")
+	}
+}
+
+func runServe(conf *config.Config) {
 	DB, err := db.Connect(conf)
 	if err != nil {
 		log.Fatal("db connection failed", err)
 	}
+	server := getServer(conf, DB)
+	server.ListenAndServe()
+}
 
+func runMigration(conf *config.Config) {
 	if err := db.MigrationsUp(conf); err != nil {
 		log.Fatal("Unable to run Migrations")
 	}
-	server := getServer(conf, DB)
-	server.ListenAndServe()
+	log.Println("Migration Done")
 }
